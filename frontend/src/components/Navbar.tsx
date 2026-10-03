@@ -49,31 +49,31 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="group flex items-center gap-2.5 focus:outline-none"
           title="Wandor Home"
         >
-          <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
             <Compass className="w-5 h-5 text-white animate-spin-slow group-hover:rotate-45 transition-transform duration-500" />
           </div>
-          <span className="font-brand text-2xl tracking-wider text-black font-bold select-none group-hover:opacity-80 transition-opacity">
+          <span className="font-brand text-2xl tracking-wider text-[#1a1a1a] font-bold select-none group-hover:opacity-80 transition-opacity">
             wandor
           </span>
         </button>
 
         {/* Center Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full liquid-glass text-sm font-medium text-[#1a1a1a]">
+        <nav className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-full liquid-glass-dark border border-white/10 text-xs md:text-sm font-medium text-neutral-300 shadow-lg">
           <button
             onClick={onGoHome}
-            className="px-4 py-1.5 rounded-full hover:bg-black/5 transition-colors"
+            className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/10 transition-colors"
           >
             Discover
           </button>
           <button
             onClick={onOpenPricing}
-            className="px-4 py-1.5 rounded-full hover:bg-black/5 transition-colors"
+            className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/10 transition-colors"
           >
             Pricing
           </button>
           <button
             onClick={onOpenFaq}
-            className="px-4 py-1.5 rounded-full hover:bg-black/5 transition-colors"
+            className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/10 transition-colors"
           >
             FAQs
           </button>
@@ -83,9 +83,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowTripsMenu(!showTripsMenu)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white hover:bg-white/15 transition-colors font-semibold"
               >
-                <MapPin className="w-3.5 h-3.5 text-[#905831]" />
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
                 <span>My Trips ({trips.length})</span>
               </button>
 
@@ -132,26 +132,27 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        {/* Right Actions */}
+        <div className="flex items-center gap-2.5">
           {user ? (
             <>
               {/* Notifications Bell */}
               <button
                 onClick={onOpenNotifications}
-                className="relative p-2 rounded-full liquid-glass hover:scale-105 transition-transform"
+                className="relative p-2.5 rounded-full liquid-glass-dark border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-all shadow-md"
                 title="Notifications"
               >
-                <Bell className="w-4 h-4 text-[#1a1a1a]" />
+                <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse shadow-md">
                     {unreadCount}
                   </span>
                 )}
               </button>
 
               {/* User Chip */}
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass text-xs font-medium text-[#1a1a1a]">
-                <div className="w-6 h-6 rounded-full bg-[#905831] text-white flex items-center justify-center font-bold">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass-dark border border-white/10 text-xs font-medium text-white shadow-md">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold text-xs shadow-inner">
                   {user.display_name.charAt(0).toUpperCase()}
                 </div>
                 <span className="max-w-[120px] truncate">{user.display_name}</span>
@@ -160,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Logout Button */}
               <button
                 onClick={onLogout}
-                className="p-2 rounded-full liquid-glass hover:bg-black/5 text-[#767676] hover:text-[#1a1a1a] transition-colors"
+                className="p-2.5 rounded-full liquid-glass-dark border border-white/10 text-neutral-400 hover:text-rose-400 hover:bg-white/10 transition-colors shadow-md"
                 title="Sign Out"
               >
                 <LogOut className="w-4 h-4" />
@@ -169,9 +170,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Plan My Trip Button */}
               <button
                 onClick={onOpenPlan}
-                className="flex items-center gap-1.5 px-4 md:px-5 py-2 rounded-full bg-[#0a0a0a] text-white text-xs md:text-sm font-medium hover:bg-black/80 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                className="flex items-center gap-1.5 px-4 md:px-5 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs md:text-sm font-semibold shadow-lg shadow-orange-500/25 transition-all duration-300 hover:scale-[1.02]"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                 <span>Plan My Trip</span>
               </button>
             </>
@@ -180,17 +181,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Quick Demo Login Button */}
               <button
                 onClick={() => onOpenAuth('demo')}
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full liquid-glass text-xs font-medium text-[#1a1a1a] hover:bg-black/5 transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full liquid-glass-dark border border-emerald-500/30 text-xs font-medium text-emerald-400 hover:bg-white/10 transition-colors shadow-md"
                 title="Explore with pre-seeded demo user"
               >
-                <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Try Demo</span>
               </button>
 
               {/* Login Button */}
               <button
                 onClick={() => onOpenAuth('login')}
-                className="px-4 py-2 rounded-full liquid-glass text-xs md:text-sm font-medium text-[#1a1a1a] hover:bg-black/5 transition-colors"
+                className="px-4 py-2 rounded-full liquid-glass-dark border border-white/10 text-xs md:text-sm font-medium text-white hover:bg-white/10 transition-colors shadow-md"
               >
                 Login
               </button>
@@ -198,9 +199,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Plan My Trip CTA */}
               <button
                 onClick={onOpenPlan}
-                className="flex items-center gap-1.5 px-4 md:px-5 py-2 rounded-full bg-[#0a0a0a] text-white text-xs md:text-sm font-medium hover:bg-black/80 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                className="flex items-center gap-1.5 px-4 md:px-5 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs md:text-sm font-semibold shadow-lg shadow-orange-500/25 transition-all duration-300 hover:scale-[1.02]"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                 <span>Plan My Trip</span>
               </button>
             </>

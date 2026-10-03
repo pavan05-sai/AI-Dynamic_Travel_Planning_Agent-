@@ -26,7 +26,14 @@ import {
   Car,
   Hotel,
   Utensils,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  Info,
+  SlidersHorizontal,
+  Flame,
+  ArrowRight,
+  ShieldCheck,
+  Wallet
 } from 'lucide-react';
 import { LocalTransportModal } from './LocalTransportModal';
 import { PackingAssistantModal } from './PackingAssistantModal';
@@ -84,12 +91,14 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   const [isTransportModalOpen, setIsTransportModalOpen] = useState(false);
   const [isPackingModalOpen, setIsPackingModalOpen] = useState(false);
   const [catalogCategoryFilter, setCatalogCategoryFilter] = useState<'all' | 'stay' | 'food' | 'activity'>('all');
+  const [showSimulateMenu, setShowSimulateMenu] = useState(false);
 
   const activeDay = itinerary.days.find(d => d.id === selectedDayId) || itinerary.days[0];
   const budget = itinerary.budget;
 
   const handleSimulateWeather = async () => {
     setSimulating(true);
+    setShowSimulateMenu(false);
     try {
       await onSimulateWeather();
     } finally {
@@ -99,6 +108,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
   const handleCheckConditions = async () => {
     setCheckingConds(true);
+    setShowSimulateMenu(false);
     try {
       await onCheckConditions();
     } finally {
@@ -106,156 +116,222 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
     }
   };
 
+  const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      }
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const c = (category || '').toLowerCase();
+    if (c.includes('stay') || c.includes('hotel')) return Hotel;
+    if (c.includes('food') || c.includes('restaurant') || c.includes('dining') || c.includes('cafe')) return Utensils;
+    if (c.includes('heritage') || c.includes('temple') || c.includes('church') || c.includes('monument')) return Compass;
+    if (c.includes('beach')) return Sun;
+    return MapPin;
+  };
+
+  const budgetUsagePercent = budget.total_limit > 0 
+    ? Math.min(100, Math.round((budget.estimated_total / budget.total_limit) * 100))
+    : 0;
+
   return (
-    <div className="w-full min-h-screen bg-[#0a0a0a] text-[#1a1a1a] pt-24 pb-20 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Top Header Card */}
+    <div className="relative min-h-screen w-full bg-travel-canvas text-[#1a1a1a] pt-32 sm:pt-36 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      
+      {/* ========================================================= */}
+      {/* CINEMATIC WANDERLUST BACKGROUND (Matching 2nd Image)      */}
+      {/* ========================================================= */}
+      <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover filter brightness-[0.96] opacity-60 scale-105"
+        >
+          <source
+            src="https://pollen-batch-41236914.figma.site/_components/v2/f0ee2dae7671c170c34f12e31c4cb41418976c98/769c564298c132f7919405cd9f17c1b1231f341d.769c5642.mp4"
+            type="video/mp4"
+          />
+        </video>
+        {/* Warm Vintage Paper Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#fbf8f3]/90 via-[#f7f3ec]/80 to-[#f0e9df]/92" />
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#f6f2ea]/40 to-[#e8dfd3]/60" />
+      </div>
+
+      {/* Main Content Container */}
+      <div className="relative z-10 max-w-7xl mx-auto space-y-6">
+        
+        {/* ========================================================= */}
+        {/* 1. TOP HERO HEADER (Frosted Liquid Glassmorphism)         */}
+        {/* ========================================================= */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden"
+          className="liquid-glass rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl border border-white/80"
         >
-          {/* Background Ambient Cover Image */}
-          <div className="absolute top-0 right-0 w-1/3 h-full opacity-15 pointer-events-none overflow-hidden">
-            <img
-              src={getPlaceImage(undefined, 'beaches')}
-              alt="Destination backdrop"
-              className="w-full h-full object-cover filter blur-sm scale-110"
-            />
-          </div>
+          {/* Ambient Glows (Smooth, No Hard Seams) */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div>
-              {/* Provenance Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="px-2.5 py-1 rounded-full bg-black text-white text-[10px] font-bold tracking-wider uppercase flex items-center gap-1">
-                  <Compass className="w-3 h-3 text-amber-400" />
+          <div className="relative z-10 space-y-6">
+            {/* Top Bar: System Badges (Left) & Diagnostics Controls (Right) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 pb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-black text-white text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5 shadow-sm">
+                  <Compass className="w-3.5 h-3.5 text-amber-400" />
                   v{itinerary.version} Snapshot
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-800 border border-emerald-500/30 text-[10px] font-bold">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 text-[10px] font-bold flex items-center gap-1.5 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Weather: {itinerary.provenance.weather.toUpperCase()}
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-blue-500/15 text-blue-800 border border-blue-500/30 text-[10px] font-bold">
+                <span className="px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-800 text-[10px] font-bold flex items-center gap-1.5 shadow-xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                   Catalog Verified
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-purple-500/15 text-purple-800 border border-purple-500/30 text-[10px] font-bold">
+                <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-800 text-[10px] font-bold shadow-xs">
                   Mode: {itinerary.mode.toUpperCase()}
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#0a0a0a] tracking-tight">
-                {trip.title}
-              </h1>
+              {/* Simulation Diagnostics Toolbar */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleSimulateWeather}
+                  disabled={simulating}
+                  className="px-3.5 py-1.5 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
+                  title="Inject simulated 85% rain to test adaptive replanning"
+                >
+                  <CloudRain className="w-3.5 h-3.5 text-sky-600" />
+                  <span>{simulating ? 'Replanning...' : 'Simulate Rain (Day 3)'}</span>
+                </button>
 
-              <div className="flex flex-wrap items-center gap-4 mt-2.5 text-xs text-neutral-600 font-medium">
-                <span className="flex items-center gap-1 text-black font-semibold">
-                  <MapPin className="w-3.5 h-3.5 text-[#905831]" />
-                  {itinerary.trip.destination.name}, {itinerary.trip.destination.country}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-neutral-500" />
-                  {itinerary.trip.start_date} to {itinerary.trip.end_date} ({itinerary.trip.num_days} Days)
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-neutral-500" />
-                  {itinerary.trip.travelers.adults} Adults
-                  {itinerary.trip.travelers.children > 0 && `, ${itinerary.trip.travelers.children} Children`}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1 font-bold text-neutral-900">
-                  <IndianRupee className="w-3.5 h-3.5 text-emerald-700" />
-                  Est. {formatCurrency(budget.estimated_total)} / Limit {formatCurrency(budget.total_limit)}
-                </span>
+                <button
+                  onClick={handleCheckConditions}
+                  disabled={checkingConds}
+                  className="px-3.5 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
+                  title="Pull live Open-Meteo weather conditions"
+                >
+                  <Sun className="w-3.5 h-3.5 text-amber-600" />
+                  <span>{checkingConds ? 'Checking...' : 'Check Conditions'}</span>
+                </button>
+
+                {/* Refresh Trip State */}
+                <button
+                  onClick={onRefreshTrip}
+                  className="p-2 rounded-2xl bg-white/80 hover:bg-white text-neutral-700 border border-black/10 text-xs font-semibold flex items-center justify-center transition-all shadow-xs hover:scale-[1.02] cursor-pointer group"
+                  title="Refresh trip state"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 group-hover:-rotate-90 transition-transform duration-300" />
+                </button>
               </div>
             </div>
 
-            {/* Quick Action Toolbar */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              {/* Simulate Rain Button */}
-              <button
-                onClick={handleSimulateWeather}
-                disabled={simulating}
-                className="px-3.5 py-2 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] disabled:opacity-50"
-                title="Inject simulated 85% monsoon rain to trigger real Replanner Agent"
-              >
-                <CloudRain className="w-3.5 h-3.5 text-sky-600" />
-                <span>{simulating ? 'Replanning...' : 'Simulate Rain (Day 3)'}</span>
-              </button>
+            {/* Main Destination Details & Clean Action Toolbar */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+              {/* Left Column: Trip Details */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#905831] uppercase tracking-wider">
+                  <MapPin className="w-4 h-4 text-[#905831]" />
+                  <span>{itinerary.trip.destination.name}, {itinerary.trip.destination.country}</span>
+                </div>
 
-              {/* Check Conditions Button */}
-              <button
-                onClick={handleCheckConditions}
-                disabled={checkingConds}
-                className="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] disabled:opacity-50"
-                title="Pull latest conditions & trigger replanning if needed"
-              >
-                <Sun className="w-3.5 h-3.5 text-amber-600" />
-                <span>{checkingConds ? 'Checking...' : 'Check Conditions'}</span>
-              </button>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#111827] tracking-tight">
+                  {trip.title}
+                </h1>
 
-              {/* Log Expense Button */}
-              <button
-                onClick={onOpenLogExpense}
-                className="px-3.5 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02]"
-              >
-                <Receipt className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Log Expense</span>
-              </button>
+                {/* Meta Highlights Strip */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs text-neutral-600 font-medium">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-white/90 shadow-xs">
+                    <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+                    <span>{formatDisplayDate(itinerary.trip.start_date)} – {formatDisplayDate(itinerary.trip.end_date)} ({itinerary.trip.num_days} Days)</span>
+                  </div>
 
-              {/* Getting Around / Local Transport Button */}
-              <button
-                onClick={() => setIsTransportModalOpen(true)}
-                className="px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white text-black border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02]"
-                title="View local transport options, fare rates, and routing advice"
-              >
-                <Navigation className="w-3.5 h-3.5 text-[#905831]" />
-                <span>Getting Around</span>
-              </button>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-white/90 shadow-xs">
+                    <Users className="w-3.5 h-3.5 text-neutral-500" />
+                    <span>{itinerary.trip.travelers.adults} Adults {itinerary.trip.travelers.children > 0 ? `, ${itinerary.trip.travelers.children} Children` : ''}</span>
+                  </div>
 
-              {/* Smart Packing Assistant Button */}
-              <button
-                onClick={() => setIsPackingModalOpen(true)}
-                className="px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white text-black border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02]"
-                title="Climate and activity-tailored packing checklist"
-              >
-                <Luggage className="w-3.5 h-3.5 text-amber-600" />
-                <span>Packing</span>
-              </button>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 border border-white/90 shadow-xs">
+                    <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="font-bold text-neutral-900">Est. {formatCurrency(budget.estimated_total)}</span>
+                    <span className="text-neutral-500">/ Limit {formatCurrency(budget.total_limit)}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold ml-0.5">
+                      {budgetUsagePercent}% allocated
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-              {/* Share Button */}
-              <button
-                onClick={onOpenShare}
-                className="px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white text-black border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02]"
-              >
-                <Share2 className="w-3.5 h-3.5 text-[#905831]" />
-                <span>Share</span>
-              </button>
+              {/* Right Column: Unified Cohesive Action Hub */}
+              <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                <button
+                  onClick={onOpenLogExpense}
+                  className="px-3.5 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                >
+                  <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Log Expense</span>
+                </button>
 
-              {/* Refresh Button */}
-              <button
-                onClick={onRefreshTrip}
-                className="p-2 rounded-2xl bg-white/80 hover:bg-white text-black border border-black/10 text-xs font-semibold flex items-center justify-center transition-all shadow-sm hover:scale-[1.02]"
-                title="Refresh trip state"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-neutral-600" />
-              </button>
+                <button
+                  onClick={() => setIsTransportModalOpen(true)}
+                  className="px-3.5 py-2.5 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="View local transport options, fare rates, and routing advice"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-[#905831]" />
+                  <span>Getting Around</span>
+                </button>
 
-              {/* AI Concierge Drawer Trigger */}
-              <button
-                onClick={onOpenConcierge}
-                className="px-4 py-2 rounded-2xl bg-black text-white text-xs font-bold flex items-center gap-2 shadow-lg hover:bg-black/90 transition-all hover:scale-[1.02]"
-              >
-                <Bot className="w-4 h-4 text-amber-300" />
-                <span>AI Concierge</span>
-              </button>
+                <button
+                  onClick={() => setIsPackingModalOpen(true)}
+                  className="px-3.5 py-2.5 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="Climate and activity-tailored packing checklist"
+                >
+                  <Luggage className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Packing</span>
+                </button>
+
+                <button
+                  onClick={onOpenShare}
+                  className="px-3.5 py-2.5 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-[#905831]" />
+                  <span>Share</span>
+                </button>
+
+                {/* Primary AI Concierge CTA */}
+                <button
+                  onClick={onOpenConcierge}
+                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#905831] via-[#c26127] to-[#df6b26] hover:from-[#7e4b28] hover:to-[#ce5f1e] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xl shadow-orange-900/20 transition-all hover:scale-[1.02] cursor-pointer"
+                >
+                  <Bot className="w-4 h-4 text-amber-200" />
+                  <span>AI Concierge</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/25 text-amber-100 font-medium ml-0.5">
+                    Copilot
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Tab Navigation Pill Strip */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl liquid-glass overflow-x-auto no-scrollbar shadow-md">
+        {/* ========================================================= */}
+        {/* 2. SEGMENTED TAB NAVIGATION BAR                            */}
+        {/* ========================================================= */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl liquid-glass overflow-x-auto no-scrollbar shadow-md border border-white/80">
           {[
             { id: 'itinerary', label: 'Itinerary Plan', icon: Calendar },
             { id: 'map', label: 'Route Map', icon: Navigation },
@@ -270,10 +346,10 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`relative px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                className={`relative px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'text-white bg-[#0a0a0a] shadow-md'
-                    : 'text-neutral-700 hover:text-black hover:bg-white/40'
+                    : 'text-neutral-700 hover:text-black hover:bg-white/50'
                 }`}
               >
                 <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-amber-400' : 'text-neutral-500'}`} />
@@ -283,8 +359,11 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
           })}
         </div>
 
-        {/* Tab Content Display */}
+        {/* ========================================================= */}
+        {/* 3. TAB CONTENT DISPLAY                                     */}
+        {/* ========================================================= */}
         <AnimatePresence mode="wait">
+          {/* TAB 1: ITINERARY PLAN */}
           {activeTab === 'itinerary' && (
             <motion.div
               key="itinerary"
@@ -293,10 +372,11 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              {/* Day Selector Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              {/* Day Selector Strip */}
+              <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
                 {itinerary.days.map(day => {
                   const isSelected = selectedDayId === day.id;
+                  const isRain = day.weather?.summary?.toLowerCase().includes('rain') || (day.weather?.rain_prob_pct || 0) > 40;
                   return (
                     <button
                       key={day.id}
@@ -304,80 +384,92 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                         setSelectedDayId(day.id);
                         setSelectedItemId(null);
                       }}
-                      className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap shadow-sm ${
+                      className={`px-4 py-3 rounded-2xl text-left transition-all flex items-center gap-3 whitespace-nowrap cursor-pointer border ${
                         isSelected
-                          ? 'bg-[#905831] text-white shadow-md'
-                          : 'liquid-glass text-neutral-800 hover:bg-white/90'
+                          ? 'bg-[#905831] text-white border-[#905831] shadow-lg shadow-orange-950/20'
+                          : 'liquid-glass text-neutral-800 hover:bg-white/90 border-white/80'
                       }`}
                     >
-                      <span>Day {day.day_number}</span>
-                      <span className="text-[10px] opacity-75 font-normal">({day.date})</span>
-                      {day.weather && (
-                        <span className="text-[10px] opacity-90 ml-1">
-                          {day.weather.summary.includes('Rain') || day.weather.rain_prob_pct > 50 ? '🌧️' : '☀️'}
-                        </span>
-                      )}
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                        isSelected ? 'bg-black/20 text-white' : 'bg-black/5 text-[#905831]'
+                      }`}>
+                        D{day.day_number}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold flex items-center gap-1.5">
+                          <span>Day {day.day_number}</span>
+                          <span className="text-[11px] opacity-85">
+                            {isRain ? '🌧️' : '☀️'}
+                          </span>
+                        </div>
+                        <div className={`text-[10px] font-medium ${isSelected ? 'text-white/80' : 'text-neutral-500'}`}>
+                          {formatDisplayDate(day.date)}
+                        </div>
+                      </div>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Active Day Card */}
+              {/* Active Day Content Card */}
               {activeDay && (
-                <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-xl border border-white/80 space-y-7">
                   {/* Day Banner */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-black/10">
-                    <div>
-                      <div className="text-xs font-bold text-[#905831] uppercase tracking-wider">
-                        Day {activeDay.day_number} • {activeDay.date}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 pb-6 border-b border-black/10">
+                    <div className="space-y-2">
+                      <div className="text-xs font-bold text-[#905831] tracking-wider uppercase flex items-center gap-2">
+                        <span>Day {activeDay.day_number}</span>
+                        <span>•</span>
+                        <span>{formatDisplayDate(activeDay.date)}</span>
                       </div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-[#0a0a0a] mt-0.5">
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0a0a0a] tracking-tight">
                         {activeDay.theme}
                       </h2>
 
-                      {/* Smart Optimization & Feature Pills */}
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-800">
-                          <Sparkles className="w-3 h-3 text-emerald-600" />
+                      {/* Smart Optimization Pills */}
+                      <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-800 shadow-xs">
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                           <span>AI Route Optimized: {activeDay.items.length} stops sequenced for minimal transit ({activeDay.totals.travel_minutes}m total transit)</span>
                         </div>
                         <button
                           onClick={() => setIsTransportModalOpen(true)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/70 hover:bg-white border border-white/80 text-[11px] font-semibold text-neutral-800 shadow-xs cursor-pointer"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 hover:bg-white border border-white/90 text-[11px] font-semibold text-neutral-800 shadow-xs cursor-pointer"
                         >
                           <Navigation className="w-3 h-3 text-[#905831]" />
                           <span>Transit Details</span>
                         </button>
                         <button
                           onClick={() => setIsPackingModalOpen(true)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/70 hover:bg-white border border-white/80 text-[11px] font-semibold text-neutral-800 shadow-xs cursor-pointer"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 hover:bg-white border border-white/90 text-[11px] font-semibold text-neutral-800 shadow-xs cursor-pointer"
                         >
-                          <Luggage className="w-3 h-3 text-amber-600" />
+                          <Luggage className="w-3.5 h-3.5 text-amber-600" />
                           <span>Packing</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Weather badge */}
+                    {/* Day Weather Widget */}
                     {activeDay.weather && (
-                      <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 border border-white/80 text-xs shadow-inner">
-                        <div className="text-2xl">
-                          {activeDay.weather.rain_prob_pct > 50 ? '🌧️' : '☀️'}
+                      <div className="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-white/70 border border-white/80 shrink-0 shadow-inner">
+                        <div className="text-3xl">
+                          {activeDay.weather.rain_prob_pct > 40 || activeDay.weather.summary.includes('Rain') ? '🌧️' : '☀️'}
                         </div>
                         <div>
-                          <div className="font-bold text-neutral-900">
-                            {activeDay.weather.summary} • {activeDay.weather.temp_max_c}°C
+                          <div className="font-bold text-sm text-neutral-900 flex items-center gap-1.5">
+                            <span>{activeDay.weather.temp_max_c}°C</span>
+                            <span className="text-xs text-neutral-500 font-normal">• {activeDay.weather.summary}</span>
                           </div>
-                          <div className="text-[10px] text-neutral-500">
-                            Rain: {activeDay.weather.rain_prob_pct}% • Source: {activeDay.weather.source}
+                          <div className="text-[10px] text-neutral-500 mt-0.5">
+                            Rain: <span className="text-sky-700 font-semibold">{activeDay.weather.rain_prob_pct}%</span> • Source: {activeDay.weather.source}
                           </div>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Day Activities & Restaurants Stream with Inter-Activity Transit */}
-                  <div className="space-y-4">
+                  {/* Day Activities Stream with Real Time Dataset Images */}
+                  <div className="space-y-5">
                     {activeDay.items.map((item, idx) => {
                       const isSelected = selectedItemId === item.id;
                       const nextItem = activeDay.items[idx + 1];
@@ -386,33 +478,44 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                             r => r.from_item === item.id || r.to_item === nextItem.id
                           )
                         : null;
+                      const CatIcon = getCategoryIcon(item.category);
+                      const placeImageUrl = getPlaceImage(item.place_id, item.category);
 
                       return (
                         <React.Fragment key={item.id}>
+                          {/* Activity Item Card */}
                           <div
-                            className={`rounded-2xl p-4 sm:p-5 transition-all border ${
+                            className={`glass-card-item rounded-3xl p-5 sm:p-6 transition-all border relative overflow-hidden group ${
                               isSelected
-                                ? 'bg-white border-[#905831] shadow-lg ring-2 ring-[#905831]/20'
-                                : 'bg-white/70 hover:bg-white/95 border-white/80 shadow-sm'
+                                ? 'bg-white border-[#905831] shadow-xl ring-2 ring-[#905831]/20'
+                                : 'hover:bg-white'
                             }`}
                           >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                              <div className="flex items-start gap-4">
-                                {/* Thumbnail */}
-                                <img
-                                  src={getPlaceImage(item.place_id, item.category)}
-                                  alt={item.name}
-                                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-sm shrink-0"
-                                />
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
+                              {/* Left Media & Details */}
+                              <div className="flex items-start gap-4 sm:gap-5 flex-1">
+                                {/* Numbered Milestone + Real Dataset Photo */}
+                                <div className="relative shrink-0">
+                                  <img
+                                    src={placeImageUrl}
+                                    alt={item.name}
+                                    className="w-24 h-24 sm:w-32 sm:h-28 rounded-2xl object-cover shadow-md border border-white/80 group-hover:scale-[1.03] transition-transform duration-300"
+                                  />
+                                  <div className="absolute -top-2 -left-2 w-6 h-6 rounded-lg bg-black text-white text-[10px] font-bold flex items-center justify-center shadow-md">
+                                    0{idx + 1}
+                                  </div>
+                                </div>
 
-                                <div>
-                                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-[#905831] uppercase">
+                                <div className="space-y-1.5 flex-1">
+                                  {/* Badges Row */}
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-black/5 text-[#905831] uppercase tracking-wide flex items-center gap-1">
+                                      <CatIcon className="w-3 h-3" />
                                       {item.category}
                                     </span>
-                                    <span className="text-xs text-neutral-500 font-mono flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {item.start_time} - {item.end_time} ({item.duration_min} min)
+                                    <span className="text-xs text-neutral-500 font-mono flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/5">
+                                      <Clock className="w-3 h-3 text-neutral-400" />
+                                      {item.start_time} – {item.end_time} ({item.duration_min} min)
                                     </span>
                                     {item.indoor && (
                                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
@@ -427,43 +530,66 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                                     )}
                                   </div>
 
-                                  <h3 className="font-bold text-base text-neutral-900">
+                                  {/* Title & Description */}
+                                  <h3 className="font-bold text-lg sm:text-xl text-[#0a0a0a] group-hover:text-[#905831] transition-colors">
                                     {item.name}
                                   </h3>
 
-                                  <p className="text-xs text-neutral-600 mt-1 leading-relaxed max-w-xl">
+                                  <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-2xl">
                                     {item.reason}
                                   </p>
+
+                                  {/* Why AI Chose This Match Tags */}
+                                  {item.reason_factors && item.reason_factors.length > 0 && (
+                                    <div className="pt-2 flex flex-wrap items-center gap-1.5">
+                                      <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1">
+                                        <Sparkles className="w-2.5 h-2.5 text-[#905831]" />
+                                        Why this matches you:
+                                      </span>
+                                      {item.reason_factors.map((factor, i) => (
+                                        <span
+                                          key={i}
+                                          className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-neutral-200 text-neutral-700 font-medium shadow-2xs"
+                                        >
+                                          {factor}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 
-                              {/* Right Action & Cost */}
-                              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0">
-                                <div className="text-sm font-bold text-neutral-900">
-                                  {item.cost.amount === 0 ? 'Free' : formatCurrency(item.cost.amount)}
+                              {/* Right Pricing & Quick Actions */}
+                              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 shrink-0 border-t sm:border-t-0 border-black/5 pt-3 sm:pt-0">
+                                <div className="text-base font-extrabold text-[#0a0a0a]">
+                                  {item.cost.amount === 0 ? (
+                                    <span className="text-emerald-700">Free</span>
+                                  ) : (
+                                    formatCurrency(item.cost.amount)
+                                  )}
                                 </div>
 
                                 <div className="flex items-center gap-1.5">
                                   {/* Lock Toggle */}
                                   <button
                                     onClick={() => onToggleLock(item.id, item.locked)}
-                                    className={`p-2 rounded-xl text-xs transition-colors ${
+                                    className={`p-2 rounded-xl text-xs transition-colors cursor-pointer ${
                                       item.locked
                                         ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                                         : 'bg-black/5 text-neutral-600 hover:bg-black/10'
                                     }`}
-                                    title={item.locked ? 'Unlock item' : 'Lock item (prevent AI from swapping)'}
+                                    title={item.locked ? 'Unlock item' : 'Lock item (prevents AI replanning swaps)'}
                                   >
                                     {item.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                                   </button>
 
-                                  {/* Select for map */}
+                                  {/* View on Map */}
                                   <button
                                     onClick={() => {
                                       setSelectedItemId(item.id);
                                       setActiveTab('map');
                                     }}
-                                    className="px-2.5 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-xs font-semibold text-neutral-800 flex items-center gap-1"
+                                    className="px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-xs font-semibold text-neutral-800 flex items-center gap-1.5 transition-all cursor-pointer"
                                   >
                                     <Navigation className="w-3 h-3 text-[#905831]" />
                                     <span>Map</span>
@@ -471,32 +597,15 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                                 </div>
                               </div>
                             </div>
-
-                            {/* Reason Factors Expandable Details */}
-                            {item.reason_factors && item.reason_factors.length > 0 && (
-                              <div className="mt-3 pt-2.5 border-t border-black/5 flex flex-wrap items-center gap-1.5">
-                                <span className="text-[10px] font-semibold text-neutral-500 uppercase">
-                                  Why this matches you:
-                                </span>
-                                {item.reason_factors.map((factor, i) => (
-                                  <span
-                                    key={i}
-                                    className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-neutral-200 text-neutral-700"
-                                  >
-                                    {factor}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                           </div>
 
                           {/* Inter-Activity Transit Connector */}
                           {nextItem && (
-                            <div className="flex items-center gap-2 pl-6 sm:pl-8 text-xs text-neutral-600 my-1">
-                              <div className="w-0.5 h-4 bg-black/20" />
-                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/60 border border-white/80 shadow-xs">
-                                <Car className="w-3.5 h-3.5 text-[#905831]" />
-                                <span className="font-semibold text-neutral-800 capitalize">
+                            <div className="flex items-center gap-3 pl-8 sm:pl-10 text-xs text-neutral-600 my-1">
+                              <div className="w-0.5 h-6 bg-black/20" />
+                              <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-white/70 border border-white/90 text-neutral-800 shadow-xs">
+                                <Car className="w-3.5 h-3.5 text-[#905831] shrink-0" />
+                                <span className="font-semibold text-neutral-900 capitalize">
                                   {routeBetween?.mode || 'Local Taxi / Auto'}
                                 </span>
                                 <span>•</span>
@@ -510,9 +619,9 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => setIsTransportModalOpen(true)}
-                                  className="ml-1 text-[10px] text-[#905831] underline font-medium hover:text-black cursor-pointer"
+                                  className="ml-1 text-[11px] text-[#905831] hover:underline font-semibold cursor-pointer"
                                 >
-                                  Options
+                                  Options & Fares
                                 </button>
                               </div>
                             </div>
@@ -522,26 +631,35 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                     })}
                   </div>
 
-                  {/* Day Totals Summary */}
-                  <div className="p-4 rounded-2xl bg-white/50 border border-white/60 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-neutral-800">
-                    <div className="flex items-center gap-6">
-                      <span>Activities: {formatCurrency(activeDay.totals.activity_cost)}</span>
-                      <span>Dining: {formatCurrency(activeDay.totals.food_cost)}</span>
-                      <span>Transit: {formatCurrency(activeDay.totals.transport_cost)}</span>
+                  {/* Day Summary Cost & Travel Strip */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white/60 border border-white/80 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-neutral-800 shadow-inner">
+                    <div className="flex flex-wrap items-center gap-6">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-purple-500" />
+                        Activities: <span className="text-black font-bold">{formatCurrency(activeDay.totals.activity_cost)}</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500" />
+                        Dining: <span className="text-black font-bold">{formatCurrency(activeDay.totals.food_cost)}</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        Transit: <span className="text-black font-bold">{formatCurrency(activeDay.totals.transport_cost)}</span>
+                      </span>
                     </div>
                     <div className="text-neutral-500">
-                      Total Active Time: {Math.round(activeDay.totals.active_minutes / 60)} hrs • Travel Time: {activeDay.totals.travel_minutes} mins
+                      Active: <span className="text-black font-bold">{Math.round(activeDay.totals.active_minutes / 60)} hrs</span> • Travel Time: <span className="text-black font-bold">{activeDay.totals.travel_minutes} mins</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Alternative Themes Panel */}
+              {/* Alternative Themes & Variants Panel */}
               {itinerary.alternatives && itinerary.alternatives.length > 0 && (
-                <div className="liquid-glass rounded-3xl p-6 sm:p-7 shadow-lg space-y-4">
+                <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80 space-y-4">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-[#905831]" />
-                    <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider">
+                    <h3 className="font-bold text-sm text-[#0a0a0a] uppercase tracking-wider">
                       Alternative Trip Variants
                     </h3>
                   </div>
@@ -550,15 +668,15 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                     {itinerary.alternatives.map(alt => (
                       <div
                         key={alt.id}
-                        className="p-4 rounded-2xl bg-white/80 border border-white/90 flex flex-col justify-between"
+                        className="p-5 rounded-2xl bg-white/80 border border-white/90 flex flex-col justify-between shadow-xs"
                       >
                         <div>
                           <div className="font-bold text-sm text-neutral-900">{alt.label}</div>
                           <p className="text-xs text-neutral-600 mt-1">{alt.summary}</p>
                           {alt.delta && (
-                            <div className="mt-2 text-[11px] text-emerald-700 font-semibold flex items-center gap-2">
+                            <div className="mt-2.5 text-[11px] text-emerald-800 font-semibold flex items-center gap-3">
                               {alt.delta.cost !== undefined && (
-                                <span>Cost: {formatCurrency(alt.delta.cost)}</span>
+                                <span>Cost delta: {formatCurrency(alt.delta.cost)}</span>
                               )}
                               {alt.delta.travel_min !== undefined && (
                                 <span>Travel: {alt.delta.travel_min} mins</span>
@@ -569,7 +687,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
                         <button
                           onClick={() => onApplyAlternative(alt.id)}
-                          className="mt-4 px-4 py-2 rounded-xl bg-[#905831] hover:bg-[#a6683c] text-white text-xs font-bold transition-colors shadow-sm self-start flex items-center gap-1.5"
+                          className="mt-4 px-4 py-2 rounded-xl bg-[#905831] hover:bg-[#a6683c] text-white text-xs font-bold transition-all shadow-sm self-start flex items-center gap-1.5 cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" />
                           <span>Apply Alternative</span>
@@ -582,14 +700,14 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
             </motion.div>
           )}
 
-          {/* Map Tab */}
+          {/* TAB 2: INTERACTIVE ROUTE MAP */}
           {activeTab === 'map' && (
             <motion.div
               key="map"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="h-[620px] rounded-3xl overflow-hidden shadow-2xl"
+              className="h-[650px] rounded-3xl overflow-hidden shadow-2xl border border-white/80"
             >
               <TripMap
                 itinerary={itinerary}
@@ -600,7 +718,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
             </motion.div>
           )}
 
-          {/* Budget & Expenses Tab */}
+          {/* TAB 3: BUDGET & EXPENSES */}
           {activeTab === 'budget' && (
             <motion.div
               key="budget"
@@ -609,65 +727,65 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              {/* Budget Overview Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className="liquid-glass rounded-3xl p-5 shadow-lg">
+              {/* 4 Stat Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="liquid-glass rounded-3xl p-5 shadow-lg border border-white/80 space-y-1">
                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
                     Total Budget Limit
                   </div>
-                  <div className="text-2xl font-extrabold text-neutral-900 mt-1">
+                  <div className="text-2xl font-black text-neutral-900">
                     {formatCurrency(budget.total_limit)}
                   </div>
-                  <div className="text-[10px] text-neutral-500 mt-1">
-                    Reserved buffer: {budget.reserve_pct}%
+                  <div className="text-[10px] text-neutral-500">
+                    Reserved safety buffer: {budget.reserve_pct}%
                   </div>
                 </div>
 
-                <div className="liquid-glass rounded-3xl p-5 shadow-lg">
+                <div className="liquid-glass rounded-3xl p-5 shadow-lg border border-white/80 space-y-1">
                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
-                    Estimated Total
+                    Estimated Total Cost
                   </div>
-                  <div className="text-2xl font-extrabold text-[#905831] mt-1">
+                  <div className="text-2xl font-black text-[#905831]">
                     {formatCurrency(budget.estimated_total)}
                   </div>
-                  <div className="text-[10px] text-neutral-500 mt-1">
-                    Per person: {formatCurrency(budget.per_person)}
+                  <div className="text-[10px] text-neutral-500">
+                    Per traveler: {formatCurrency(budget.per_person)}
                   </div>
                 </div>
 
-                <div className="liquid-glass rounded-3xl p-5 shadow-lg">
+                <div className="liquid-glass rounded-3xl p-5 shadow-lg border border-white/80 space-y-1">
                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
                     Spendable Balance
                   </div>
-                  <div className="text-2xl font-extrabold text-emerald-800 mt-1">
+                  <div className="text-2xl font-black text-emerald-800">
                     {formatCurrency(budget.remaining)}
                   </div>
-                  <div className="text-[10px] text-emerald-700 font-semibold mt-1">
+                  <div className="text-[10px] text-emerald-700 font-semibold">
                     Status: {budget.status.toUpperCase()}
                   </div>
                 </div>
 
-                <div className="liquid-glass rounded-3xl p-5 shadow-lg flex flex-col justify-between">
+                <div className="liquid-glass rounded-3xl p-5 shadow-lg border border-white/80 flex flex-col justify-between">
                   <div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
-                      Actual Expenses Logged
+                      Logged Ground Actuals
                     </div>
-                    <div className="text-2xl font-extrabold text-neutral-900 mt-1">
+                    <div className="text-2xl font-black text-neutral-900 mt-1">
                       {formatCurrency(expenses.reduce((acc, curr) => acc + curr.amount, 0))}
                     </div>
                   </div>
                   <button
                     onClick={onOpenLogExpense}
-                    className="mt-2 py-1.5 px-3 rounded-xl bg-black text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-neutral-800 transition-colors"
+                    className="mt-2 py-1.5 px-3 rounded-xl bg-black text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-neutral-800 transition-colors cursor-pointer"
                   >
                     <Receipt className="w-3.5 h-3.5" />
-                    <span>Log New</span>
+                    <span>Log New Expense</span>
                   </button>
                 </div>
               </div>
 
-              {/* Category Breakdown Bar */}
-              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg space-y-4">
+              {/* Category Allocation Grid */}
+              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80 space-y-4">
                 <h3 className="font-bold text-base text-neutral-900">
                   Estimated Category Allocation
                 </h3>
@@ -680,7 +798,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                     { label: 'Activities', amt: budget.breakdown.activities, color: 'bg-purple-500' },
                     { label: 'Reserve', amt: budget.breakdown.reserve, color: 'bg-neutral-500' },
                   ].map(cat => (
-                    <div key={cat.label} className="p-3 rounded-2xl bg-white/70 border border-white/80">
+                    <div key={cat.label} className="p-3.5 rounded-2xl bg-white/70 border border-white/80">
                       <div className="flex items-center gap-1.5">
                         <span className={`w-2.5 h-2.5 rounded-full ${cat.color}`} />
                         <span className="text-[10px] font-bold text-neutral-500 uppercase">{cat.label}</span>
@@ -693,15 +811,15 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                 </div>
               </div>
 
-              {/* Logged Expenses List */}
-              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg space-y-4">
+              {/* Logged Expenses Ledger */}
+              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-base text-neutral-900">
                     Logged Ground Expenses
                   </h3>
                   <button
                     onClick={onOpenLogExpense}
-                    className="text-xs font-bold text-[#905831] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#905831] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     <span>Add Expense</span>
@@ -710,7 +828,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
                 {expenses.length === 0 ? (
                   <p className="text-xs text-neutral-500 py-6 text-center">
-                    No actual on-ground expenses recorded yet. Click "Log Expense" above.
+                    No actual on-ground expenses recorded yet. Click "Log Expense" above to track receipts.
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -738,7 +856,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
             </motion.div>
           )}
 
-          {/* Explore Places Tab */}
+          {/* TAB 4: CATALOG PLACES (Real Dataset Images) */}
           {activeTab === 'explore' && (
             <motion.div
               key="explore"
@@ -747,14 +865,14 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div className="liquid-glass rounded-3xl p-6 shadow-lg space-y-4">
+              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80 space-y-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="font-bold text-base text-neutral-900">
+                    <h3 className="font-bold text-lg text-neutral-900">
                       Places, Stays & Food in {itinerary.trip.destination.name}
                     </h3>
                     <p className="text-xs text-neutral-500">
-                      Grounded recommendations with real OpenStreetMap coordinates, estimated expenses, and transit connections
+                      Grounded recommendations with real OpenStreetMap coordinates, verified images, and transparent pricing
                     </p>
                   </div>
 
@@ -765,16 +883,16 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                       value={searchCatalogQuery}
                       onChange={e => setSearchCatalogQuery(e.target.value)}
                       placeholder="Search places or categories..."
-                      className="w-full rounded-2xl bg-white/80 border border-neutral-300 pl-10 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#905831]"
+                      className="w-full rounded-2xl bg-white/90 border border-neutral-300 pl-10 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#905831]"
                     />
                   </div>
                 </div>
 
-                {/* Category Filter Chips */}
+                {/* Filter Chips */}
                 <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-black/5">
                   {[
                     { id: 'all', label: 'All Recommendations', icon: Compass },
-                    { id: 'stay', label: 'Stays & Stays', icon: Hotel },
+                    { id: 'stay', label: 'Stays & Hotels', icon: Hotel },
                     { id: 'food', label: 'Food & Dining', icon: Utensils },
                     { id: 'activity', label: 'Sights & Activities', icon: MapPin },
                   ].map(filter => {
@@ -787,7 +905,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                         onClick={() => setCatalogCategoryFilter(filter.id as any)}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-[#905831] text-white shadow-sm'
+                            ? 'bg-[#905831] text-white shadow-xs'
                             : 'bg-white/60 text-neutral-700 hover:bg-white border border-black/5'
                         }`}
                       >
@@ -798,7 +916,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                   })}
                 </div>
 
-                {/* Display All Filtered Places Grid */}
+                {/* Places Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
                   {itinerary.days
                     .flatMap(d => d.items)
@@ -818,39 +936,41 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                       const isStay = it.category.toLowerCase().includes('stay') || it.category.toLowerCase().includes('hotel');
                       const isFood = it.category.toLowerCase().includes('food') || it.category.toLowerCase().includes('dining') || it.category.toLowerCase().includes('restaurant');
                       const osmLink = `https://www.openstreetmap.org/?mlat=${it.lat}&mlon=${it.lng}#map=16/${it.lat}/${it.lng}`;
+                      const CatIcon = getCategoryIcon(it.category);
+                      const placeImageUrl = getPlaceImage(it.place_id, it.category);
 
                       return (
                         <div
                           key={it.id}
-                          className="rounded-2xl bg-white/80 border border-white/90 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+                          className="rounded-3xl bg-white/80 border border-white/95 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
                         >
                           <div>
                             <div className="relative">
                               <img
-                                src={getPlaceImage(it.place_id, it.category)}
+                                src={placeImageUrl}
                                 alt={it.name}
-                                className="w-full h-36 object-cover"
+                                className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
                               />
-                              <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold">
+                              <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold">
                                 {it.cost.amount === 0 ? 'Free Entry' : formatCurrency(it.cost.amount)}
                               </span>
                             </div>
                             <div className="p-4 space-y-2">
                               <div className="flex items-center justify-between text-[10px] font-bold text-[#905831] uppercase">
                                 <span className="flex items-center gap-1">
-                                  {isStay ? <Hotel className="w-3 h-3" /> : isFood ? <Utensils className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                  <CatIcon className="w-3 h-3" />
                                   {it.category}
                                 </span>
-                                <span className="text-neutral-500 font-normal lowercase">{it.start_time} - {it.end_time}</span>
+                                <span className="text-neutral-500 font-normal lowercase">{it.start_time} – {it.end_time}</span>
                               </div>
-                              <div className="font-bold text-sm text-neutral-900 leading-snug">{it.name}</div>
+                              <div className="font-bold text-base text-neutral-900 leading-snug">{it.name}</div>
                               <p className="text-xs text-neutral-600 line-clamp-2">{it.reason}</p>
                             </div>
                           </div>
 
                           <div className="px-4 pb-4 pt-1 flex items-center justify-between border-t border-black/5 text-[11px]">
                             <span className="text-[10px] text-neutral-500 italic">
-                              {isStay ? 'Estimated stay cost' : isFood ? 'Local culinary price' : 'Free OSM coordinates'}
+                              {isStay ? 'Estimated stay' : isFood ? 'Local culinary price' : 'Verified GPS'}
                             </span>
                             <a
                               href={osmLink}
@@ -870,7 +990,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
             </motion.div>
           )}
 
-          {/* Versions Tab */}
+          {/* TAB 5: VERSION HISTORY */}
           {activeTab === 'versions' && (
             <motion.div
               key="versions"
@@ -879,17 +999,17 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
-              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg">
+              <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80">
                 <div className="mb-6">
                   <h3 className="font-bold text-lg text-neutral-900">
                     Itinerary Version Timeline
                   </h3>
                   <p className="text-xs text-neutral-500">
-                    Every modification creates an immutable snapshot. You can revert back anytime.
+                    Every modification creates an immutable snapshot. You can roll back anytime with zero loss.
                   </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {versions.map(v => {
                     const isCurrent = v.version === itinerary.version;
                     return (
@@ -901,10 +1021,10 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                             : 'bg-white/60 border-white/80 hover:bg-white/90'
                         }`}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3.5">
                           <div
                             className={`w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-bold shrink-0 ${
-                              isCurrent ? 'bg-[#905831] text-white' : 'bg-black/10 text-neutral-700'
+                              isCurrent ? 'bg-[#905831] text-white shadow-md' : 'bg-black/10 text-neutral-700'
                             }`}
                           >
                             v{v.version}
@@ -914,12 +1034,12 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                               <span>{v.change_summary || `Version ${v.version}`}</span>
                               {isCurrent && (
                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">
-                                  Current
+                                  Current Active
                                 </span>
                               )}
                             </div>
                             <div className="text-[11px] text-neutral-500 mt-0.5">
-                              Created by: <span className="font-medium">{v.created_by}</span> •{' '}
+                              Created by: <span className="font-medium text-neutral-700">{v.created_by}</span> •{' '}
                               {new Date(v.created_at).toLocaleString()}
                             </div>
                           </div>
@@ -928,9 +1048,9 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                         {!isCurrent && (
                           <button
                             onClick={() => onRevertVersion(v.version)}
-                            className="px-3.5 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-neutral-800 text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0"
+                            className="px-3.5 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-neutral-800 text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <RotateCcw className="w-3.5 h-3.5 text-[#905831]" />
                             <span>Revert to this</span>
                           </button>
                         )}
@@ -942,7 +1062,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
             </motion.div>
           )}
 
-          {/* Analytics Tab */}
+          {/* TAB 6: TRIP ANALYTICS */}
           {activeTab === 'analytics' && analytics && (
             <motion.div
               key="analytics"
@@ -953,20 +1073,20 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Spend vs Planned */}
-                <div className="liquid-glass rounded-3xl p-6 sm:p-7 shadow-lg space-y-4">
+                <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80 space-y-4">
                   <h3 className="font-bold text-base text-neutral-900">
                     Planned vs Actual Spending
                   </h3>
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-3.5 pt-2">
                     {analytics.by_category.map(cat => {
                       const maxVal = Math.max(cat.planned, cat.actual, 100);
                       const plannedPct = Math.min(100, (cat.planned / maxVal) * 100);
                       const actualPct = Math.min(100, (cat.actual / maxVal) * 100);
 
                       return (
-                        <div key={cat.category} className="space-y-1 text-xs">
+                        <div key={cat.category} className="space-y-1.5 text-xs">
                           <div className="flex justify-between font-semibold capitalize">
-                            <span>{cat.category}</span>
+                            <span className="text-neutral-900">{cat.category}</span>
                             <span className="text-neutral-500 font-mono">
                               Planned {formatCurrency(cat.planned)} • Actual {formatCurrency(cat.actual)}
                             </span>
@@ -982,20 +1102,20 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                 </div>
 
                 {/* Day-wise Activity Load */}
-                <div className="liquid-glass rounded-3xl p-6 sm:p-7 shadow-lg space-y-4">
+                <div className="liquid-glass rounded-3xl p-6 sm:p-8 shadow-lg border border-white/80 space-y-4">
                   <h3 className="font-bold text-base text-neutral-900">
-                    Day-wise Activity & Travel Load
+                    Day-wise Activity & Transit Load
                   </h3>
                   <div className="space-y-3 pt-2">
                     {analytics.pace_distribution.map(d => (
-                      <div key={d.day_number} className="p-3 rounded-2xl bg-white/70 border border-white/80 text-xs">
+                      <div key={d.day_number} className="p-3.5 rounded-2xl bg-white/70 border border-white/80 text-xs">
                         <div className="flex justify-between font-bold text-neutral-900 mb-1">
                           <span>Day {d.day_number}</span>
-                          <span>{d.items_count} Scheduled Stops</span>
+                          <span className="text-[#905831]">{d.items_count} Scheduled Stops</span>
                         </div>
                         <div className="text-[11px] text-neutral-600 flex gap-4">
-                          <span>Active: {Math.round(d.active_minutes / 60)} hrs</span>
-                          <span>Travel / Transit: {d.travel_minutes} mins</span>
+                          <span>Active: <span className="text-neutral-900 font-semibold">{Math.round(d.active_minutes / 60)} hrs</span></span>
+                          <span>Travel: <span className="text-neutral-900 font-semibold">{d.travel_minutes} mins</span></span>
                         </div>
                       </div>
                     ))}
