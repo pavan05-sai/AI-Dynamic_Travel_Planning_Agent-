@@ -1,4 +1,4 @@
-﻿# Wandor — AI Dynamic Travel Planning Agent 🌍✈️
+# Wandor — AI Dynamic Travel Planning Agent 🌍✈️
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -43,7 +43,10 @@
 ### 4. Transparent Budget & Expense Actuals Tracking
 ![Budget & Expenses](docs/screenshots/budget_tracking.png)
 
-### 5. AI Concierge Copilot & Structured ChangeSets
+### 5. Day-by-Day Pace, Transit & Activity Load Analytics
+![Trip Analytics](docs/screenshots/trip_analytics.png)
+
+### 6. AI Concierge Copilot & Structured ChangeSets
 ![AI Concierge Drawer](docs/screenshots/ai_concierge.png)
 
 ---
