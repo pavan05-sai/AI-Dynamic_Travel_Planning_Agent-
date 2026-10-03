@@ -1,0 +1,9 @@
+{
+  "destination_id": "dest_goa",
+  "forecast": [
+    { "day_number": 1, "summary": "Sunny with clear coastal skies", "temp_max_c": 32.0, "rain_prob_pct": 10, "source": "simulated" },
+    { "day_number": 2, "summary": "Pleasant and breezy", "temp_max_c": 31.5, "rain_prob_pct": 15, "source": "simulated" },
+    { "day_number": 3, "summary": "Heavy monsoon showers with thunderstorms", "temp_max_c": 28.0, "rain_prob_pct": 85, "source": "simulated" },
+    { "day_number": 4, "summary": "Partly cloudy with clearing skies", "temp_max_c": 30.5, "rain_prob_pct": 20, "source": "simulated" }
+  ]
+}

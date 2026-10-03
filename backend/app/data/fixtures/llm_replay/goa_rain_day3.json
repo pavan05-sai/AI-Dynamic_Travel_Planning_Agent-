@@ -1,0 +1,14 @@
+{
+  "ops": [
+    {
+      "op": "REPLACE_ITEM",
+      "item_id": "it_d3_01",
+      "new_place_id": "poi_goa_houses_museum"
+    }
+  ],
+  "rationale": "Swapped outdoor beach for Houses of Goa Museum due to forecasted rain.",
+  "expected_effects": {
+    "weather_adapted": true,
+    "saved_cost": 0
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "hotel_id": "hotel_goa_02",
+  "hotel_reason": "Central location in Candolim, excellent pool, and walkable beach access.",
+  "days": [
+    {
+      "day_number": 1,
+      "theme": "Old Goa Heritage & Panaji Culture",
+      "activity_ids": [
+        "poi_goa_basilica",
+        "poi_goa_fontainhas"
+      ],
+      "meal_ids": [
+        "rest_goa_fisherman_wharf",
+        "rest_goa_mum_kitchen"
+      ],
+      "reasons": {
+        "poi_goa_basilica": "Remarkable 16th-century baroque architecture.",
+        "poi_goa_fontainhas": "Charming colonial Portuguese streetscapes.",
+        "rest_goa_fisherman_wharf": "Riverside dining with fresh Goan seafood.",
+        "rest_goa_mum_kitchen": "Authentic heirloom Goan recipes."
+      },
+      "reason_factors": {
+        "poi_goa_basilica": [
+          "interest:heritage",
+          "rating:4.8"
+        ],
+        "poi_goa_fontainhas": [
+          "interest:heritage",
+          "scenic:outdoor"
+        ]
+      }
+    },
+    {
+      "day_number": 2,
+      "theme": "Coastal Forts & Beach Vistas",
+      "activity_ids": [
+        "poi_goa_fort_aguada",
+        "poi_goa_calangute_beach"
+      ],
+      "meal_ids": [
+        "rest_goa_souza_lobo",
+        "rest_goa_gunpowder"
+      ],
+      "reasons": {
+        "poi_goa_fort_aguada": "Historic Portuguese ocean fortress.",
+        "poi_goa_calangute_beach": "Iconic beach experience.",
+        "rest_goa_souza_lobo": "Beachfront dining institution.",
+        "rest_goa_gunpowder": "Coastal South Indian specialties in garden courtyard."
+      },
+      "reason_factors": {
+        "poi_goa_fort_aguada": [
+          "interest:heritage",
+          "views:scenic"
+        ],
+        "poi_goa_calangute_beach": [
+          "interest:beaches"
+        ]
+      }
+    }
+  ],
+  "alternative_themes": [
+    {
+      "id": "alt_nature",
+      "label": "Nature & Spice Trails",
+      "summary": "Focuses on Dudhsagar waterfalls and Sahakari spice farm.",
+      "ops": []
+    }
+  ]
+}

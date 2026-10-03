@@ -1,0 +1,13 @@
+{
+  "ops": [
+    {
+      "op": "REPLACE_ITEM",
+      "item_id": "it_d2_02",
+      "new_place_id": "rest_goa_vinayak"
+    }
+  ],
+  "rationale": "Substituted dining option with authentic budget-friendly Vinayak Family Restaurant to lower costs.",
+  "expected_effects": {
+    "cost_delta": -400
+  }
+}
