@@ -48,3 +48,7 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+
+# Local Workspace Junctions & Redundant Extract
+/app/
+AI-Dynamic_Travel_Planning_Agent--main/

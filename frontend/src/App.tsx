@@ -384,6 +384,10 @@ export function App() {
             onRevertVersion={handleRevertVersion}
             onToggleLock={handleToggleLock}
             onApplyAlternative={handleApplyAlternative}
+            onItineraryUpdated={(newIt) => {
+              setCurrentItinerary(newIt);
+              if (currentTripId) loadTripDetails(currentTripId);
+            }}
           />
         )}
       </main>

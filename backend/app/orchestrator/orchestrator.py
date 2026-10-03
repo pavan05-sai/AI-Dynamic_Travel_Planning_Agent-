@@ -65,8 +65,9 @@ class Orchestrator:
             catalog_id=trip.destination_id
         )
 
-        travelers = Travelers(adults=2, children=0)
-        total_budget = 30000
+        travelers = Travelers(adults=trip.adults if hasattr(trip, 'adults') and trip.adults else 2,
+                               children=trip.children if hasattr(trip, 'children') and trip.children else 0)
+        total_budget = trip.budget if hasattr(trip, 'budget') and trip.budget else 30000
 
         # Fetch weather
         weather_forecasts = WeatherService.get_forecast(
@@ -512,13 +513,15 @@ class Orchestrator:
         replan_it: Optional[CanonicalItinerary] = None
 
         # If weather simulation on day_3
-        target_day = next((d for d in ctx.itinerary.days if d.id == day_id), None)
-        if target_day and event_type == "weather":
+        # Multi-scenario handling
+        target_day = next((d for d in ctx.itinerary.days if d.id == day_id), ctx.itinerary.days[0] if ctx.itinerary.days else None)
+        changeset: Optional[ChangeSet] = None
+
+        if target_day and event_type in ("weather", "rain"):
             target_day.weather.rain_prob_pct = 85
             target_day.weather.summary = "Heavy showers (Simulated)"
             target_day.weather.source = "simulated"
 
-            # Find outdoor item to swap
             outdoor_items = [it for it in target_day.items if not it.indoor and it.type == "activity"]
             indoor_places = [p for p in ctx.catalog_places if p.indoor and p.kind == "attraction"]
 
@@ -539,32 +542,72 @@ class Orchestrator:
 
                 changeset = ChangeSet(
                     ops=[ChangeOp(op=OpType.REPLACE_ITEM, item_id=item_to_replace.id, new_place_id=new_indoor.id)],
-                    rationale=f"Swapped outdoor {item_to_replace.name} for indoor {new_indoor.name} due to simulated rain on {day_id}."
+                    rationale=f"Monsoon Alert: Swapped outdoor '{item_to_replace.name}' for indoor '{new_indoor.name}'."
                 )
 
-                res = OrchestratorPipeline.run_pipeline(
-                    db=db,
-                    trip=ctx.trip,
-                    base_itinerary=ctx.itinerary,
-                    changeset=changeset,
-                    created_by="replanner_agent",
-                    change_summary=changeset.rationale,
-                    catalog_places=ctx.catalog_places
+        elif target_day and event_type in ("delay", "flight_delay"):
+            # Shift morning activity or swap for afternoon leisure
+            activity_items = [it for it in target_day.items if it.type == "activity"]
+            if activity_items:
+                item_to_adjust = activity_items[0]
+                changeset = ChangeSet(
+                    ops=[ChangeOp(op=OpType.MOVE_ITEM, item_id=item_to_adjust.id, to_day_id=target_day.id)],
+                    rationale=f"Flight Delay Contingency: Rescheduled morning schedule on {target_day.id} to accommodate 4-hour delay."
                 )
 
-                if res.success:
-                    replan_it = res.itinerary
-                    event_repo.mark_handled(db_event.id, res.itinerary.version)
+        elif target_day and event_type in ("closure", "attraction_closed"):
+            # Replace an attraction with an alternative
+            attraction_items = [it for it in target_day.items if it.type == "activity"]
+            if attraction_items:
+                closed_item = attraction_items[0]
+                existing_place_ids = {it.place_id for d in ctx.itinerary.days for it in d.items}
+                candidates = [p for p in ctx.catalog_places if p.id not in existing_place_ids and p.kind == "attraction"]
+                alt_place = candidates[0] if candidates else ctx.catalog_places[0]
+                changeset = ChangeSet(
+                    ops=[ChangeOp(op=OpType.REPLACE_ITEM, item_id=closed_item.id, new_place_id=alt_place.id)],
+                    rationale=f"Attraction Closed: Replaced '{closed_item.name}' with verified alternative '{alt_place.name}'."
+                )
 
-                    noti_repo = NotificationRepository(db)
-                    noti_repo.create(
-                        user_id=ctx.trip.user_id,
-                        trip_id=ctx.trip.id,
-                        type="weather_alert",
-                        title=f"Weather Alert: Rain on {day_id}",
-                        body=f"Simulated weather alert triggered a replan: {changeset.rationale}",
-                        severity="warning"
-                    )
+        elif event_type in ("budget_cut", "budget"):
+            # Lower the budget limit and optimize
+            new_limit = max(3000, int(ctx.itinerary.budget.total_limit * 0.75))
+            changeset = ChangeSet(
+                ops=[ChangeOp(op=OpType.SET_BUDGET, total_limit=new_limit)],
+                rationale=f"Budget Crunch: Scaled down budget limit to ₹{new_limit:,} with optimized cost efficiency."
+            )
+
+        elif target_day and event_type in ("slow_travel", "fatigue"):
+            # Remove or relax one item for pacing
+            if len(target_day.items) > 2:
+                relaxed_item = target_day.items[-1]
+                changeset = ChangeSet(
+                    ops=[ChangeOp(op=OpType.REMOVE_ITEM, item_id=relaxed_item.id)],
+                    rationale=f"Slow Travel Mode: Relaxed pace on {target_day.id} to add dedicated sunset leisure time."
+                )
+
+        if changeset:
+            res = OrchestratorPipeline.run_pipeline(
+                db=db,
+                trip=ctx.trip,
+                base_itinerary=ctx.itinerary,
+                changeset=changeset,
+                created_by="replanner_agent",
+                change_summary=changeset.rationale,
+                catalog_places=ctx.catalog_places
+            )
+            if res.success:
+                replan_it = res.itinerary
+                event_repo.mark_handled(db_event.id, res.itinerary.version)
+
+                noti_repo = NotificationRepository(db)
+                noti_repo.create(
+                    user_id=ctx.trip.user_id,
+                    trip_id=ctx.trip.id,
+                    type="scenario_alert",
+                    title=f"Scenario Simulated: {event_type.replace('_', ' ').title()}",
+                    body=changeset.rationale,
+                    severity="info"
+                )
 
         event_dict = {
             "id": db_event.id,

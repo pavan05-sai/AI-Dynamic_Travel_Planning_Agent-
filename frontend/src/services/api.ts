@@ -237,13 +237,41 @@ class ApiClient {
 
   async simulateEvent(
     tripId: number | string,
-    data: { type: string; day_id?: string; severity?: string; detail?: string }
+    data: { type: string; day_id?: string; severity?: string; detail?: string; payload?: any }
   ): Promise<{ event: any; itinerary?: CanonicalItinerary }> {
     return this.request<{ event: any; itinerary?: CanonicalItinerary }>(`/trips/${tripId}/events/simulate`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
+
+  // --- Compiler & Unstructured Import ---
+  async compilerParse(
+    tripId: number | string,
+    text: string
+  ): Promise<{
+    source_lines_analyzed: number;
+    extracted_count: number;
+    items: any[];
+    conflicts: string[];
+    catalog_matched_count: number;
+  }> {
+    return this.request<any>(`/trips/${tripId}/compiler/parse`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  }
+
+  async compilerApply(
+    tripId: number | string,
+    items: any[]
+  ): Promise<{ itinerary: CanonicalItinerary; added_count: number; version: number }> {
+    return this.request<any>(`/trips/${tripId}/compiler/apply`, {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    });
+  }
+
 
   // --- Budget & Expenses ---
   async getBudget(tripId: number | string): Promise<any> {

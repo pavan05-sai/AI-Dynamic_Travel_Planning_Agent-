@@ -76,6 +76,9 @@ def create_trip(
         start_date=req.start_date,
         end_date=req.end_date,
         num_days=num_days,
+        budget=req.budget,
+        adults=req.travelers.adults,
+        children=req.travelers.children,
         mode="live"
     )
 

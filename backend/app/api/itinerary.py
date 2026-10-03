@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from app.orchestrator.context import build_agent_context
 from app.orchestrator.orchestrator import Orchestrator
 from app.orchestrator.pipeline import OrchestratorPipeline
 from app.repositories.places import PlaceRepository
+from app.repositories.trips import TripRepository
 from app.repositories.versions import VersionRepository
 from app.schemas.changeset import ChangeOp, ChangeSet, OpType
 from app.schemas.common import success_response
@@ -235,3 +237,85 @@ def update_trip_settings(
         "itinerary": res.itinerary.model_dump(),
         "diff": res.diff
     })
+
+
+@router.post("/compiler/parse")
+def compile_unstructured_text(
+    req: Dict[str, Any],
+    trip: Trip = Depends(get_owned_trip),
+    db: Session = Depends(get_db)
+):
+    from app.services.compiler import ItineraryCompilerService
+    text = req.get("text", "")
+    if not text.strip():
+        raise ValidationError("Text input is required for compilation")
+
+    ctx = build_agent_context(db, trip.id)
+    result = ItineraryCompilerService.compile_text(
+        text=text,
+        trip=trip,
+        catalog_places=ctx.catalog_places,
+        existing_itinerary=ctx.itinerary
+    )
+    return success_response(result)
+
+
+@router.post("/compiler/apply")
+def apply_compiled_items(
+    req: Dict[str, Any],
+    trip: Trip = Depends(get_owned_trip),
+    db: Session = Depends(get_db)
+):
+    items = req.get("items", [])
+    if not items:
+        raise ValidationError("No items provided to apply")
+
+    ctx = build_agent_context(db, trip.id)
+    if not ctx.itinerary:
+        raise ValidationError("No itinerary exists for this trip")
+
+    # Add items to target days
+    target_it = ctx.itinerary
+    added_names = []
+    for it_dict in items:
+        target_day_id = it_dict.get("day_id") or "day_1"
+        target_day = next((d for d in target_it.days if d.id == target_day_id), target_it.days[0])
+
+        new_item = CanonicalItinerary.model_validate(target_it.model_dump())  # validate clone
+        from app.schemas.itinerary import Coordinates, ItineraryItem, ItemProvenance
+        item_obj = ItineraryItem(
+            id=it_dict.get("id") or f"imp_{int(datetime.now().timestamp())}",
+            name=it_dict.get("name", "Imported Activity"),
+            type=it_dict.get("type", "activity"),
+            category=it_dict.get("category", "sightseeing"),
+            start_time=it_dict.get("start_time", "11:00"),
+            duration_min=it_dict.get("duration_min", 90),
+            cost=it_dict.get("cost", 200),
+            place_id=it_dict.get("place_id"),
+            coordinates=Coordinates(
+                lat=it_dict.get("coordinates", {}).get("lat", 15.49),
+                lng=it_dict.get("coordinates", {}).get("lng", 73.82)
+            ),
+            provenance=ItemProvenance(
+                source="imported_document",
+                confidence=it_dict.get("provenance", {}).get("confidence", 0.9)
+            )
+        )
+        target_day.items.append(item_obj)
+        added_names.append(item_obj.name)
+
+    # Save new version
+    new_version = target_it.version + 1
+    target_it.version = new_version
+    summary = f"Compiled & added {len(added_names)} imported items: {', '.join(added_names[:3])}"
+    target_it.change_summary = summary
+
+    VersionRepository(db).create(trip.id, new_version, target_it.model_dump(), "compiler", summary)
+    TripRepository(db).update_version_pointer(trip.id, new_version)
+
+    return success_response({
+        "itinerary": target_it.model_dump(),
+        "added_count": len(added_names),
+        "version": new_version
+    })
+

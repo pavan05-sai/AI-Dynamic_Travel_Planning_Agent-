@@ -27,16 +27,20 @@ import {
   Hotel,
   Utensils,
   ExternalLink,
-  ChevronDown,
-  Info,
-  SlidersHorizontal,
-  Flame,
-  ArrowRight,
   ShieldCheck,
-  Wallet
+  Wallet,
+  Headphones,
+  ShieldAlert,
+  FileCode,
 } from 'lucide-react';
 import { LocalTransportModal } from './LocalTransportModal';
 import { PackingAssistantModal } from './PackingAssistantModal';
+import { ScenarioSimulatorModal } from './ScenarioSimulatorModal';
+import { EmergencyHubModal } from './EmergencyHubModal';
+import { AudioTourGuideModal } from './AudioTourGuideModal';
+import { ImportCompilerModal } from './ImportCompilerModal';
+import { GroupPlanningModal } from './GroupPlanningModal';
+import { OfflineCompanion } from './OfflineCompanion';
 import type {
   CanonicalItinerary,
   TripSummary,
@@ -62,6 +66,7 @@ interface TripDashboardProps {
   onRevertVersion: (v: number) => Promise<void>;
   onToggleLock: (itemId: string, currentLock: boolean) => Promise<void>;
   onApplyAlternative: (altId: string) => Promise<void>;
+  onItineraryUpdated?: (newItinerary: CanonicalItinerary) => void;
 }
 
 export const TripDashboard: React.FC<TripDashboardProps> = ({
@@ -79,6 +84,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   onRevertVersion,
   onToggleLock,
   onApplyAlternative,
+  onItineraryUpdated,
 }) => {
   const [activeTab, setActiveTab] = useState<
     'itinerary' | 'map' | 'budget' | 'explore' | 'versions' | 'analytics'
@@ -90,15 +96,18 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   const [searchCatalogQuery, setSearchCatalogQuery] = useState('');
   const [isTransportModalOpen, setIsTransportModalOpen] = useState(false);
   const [isPackingModalOpen, setIsPackingModalOpen] = useState(false);
+  const [isSimulatorModalOpen, setIsSimulatorModalOpen] = useState(false);
+  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
+  const [isAudioGuideModalOpen, setIsAudioGuideModalOpen] = useState(false);
+  const [isCompilerModalOpen, setIsCompilerModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [catalogCategoryFilter, setCatalogCategoryFilter] = useState<'all' | 'stay' | 'food' | 'activity'>('all');
-  const [showSimulateMenu, setShowSimulateMenu] = useState(false);
 
   const activeDay = itinerary.days.find(d => d.id === selectedDayId) || itinerary.days[0];
   const budget = itinerary.budget;
 
   const handleSimulateWeather = async () => {
     setSimulating(true);
-    setShowSimulateMenu(false);
     try {
       await onSimulateWeather();
     } finally {
@@ -108,7 +117,6 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
   const handleCheckConditions = async () => {
     setCheckingConds(true);
-    setShowSimulateMenu(false);
     try {
       await onCheckConditions();
     } finally {
@@ -210,23 +218,32 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               {/* Simulation Diagnostics Toolbar */}
               <div className="flex items-center gap-2 shrink-0">
                 <button
+                  onClick={() => setIsSimulatorModalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 text-[#905831] border border-orange-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="Simulate real-world disruptions (Monsoon, flight delays, venue closures, budget cuts)"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Scenario Simulator</span>
+                </button>
+
+                <button
                   onClick={handleSimulateWeather}
                   disabled={simulating}
-                  className="px-3.5 py-1.5 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
-                  title="Inject simulated 85% rain to test adaptive replanning"
+                  className="px-3 py-1.5 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
+                  title="Inject simulated 85% rain on Day 3"
                 >
                   <CloudRain className="w-3.5 h-3.5 text-sky-600" />
-                  <span>{simulating ? 'Replanning...' : 'Simulate Rain (Day 3)'}</span>
+                  <span>{simulating ? 'Replanning...' : 'Rain Test'}</span>
                 </button>
 
                 <button
                   onClick={handleCheckConditions}
                   disabled={checkingConds}
-                  className="px-3.5 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
+                  className="px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
                   title="Pull live Open-Meteo weather conditions"
                 >
                   <Sun className="w-3.5 h-3.5 text-amber-600" />
-                  <span>{checkingConds ? 'Checking...' : 'Check Conditions'}</span>
+                  <span>{checkingConds ? 'Checking...' : 'Check Weather'}</span>
                 </button>
 
                 {/* Refresh Trip State */}
@@ -280,7 +297,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                 <button
                   onClick={onOpenLogExpense}
-                  className="px-3.5 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  className="px-3 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
                 >
                   <Receipt className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Log Expense</span>
@@ -288,16 +305,16 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
                 <button
                   onClick={() => setIsTransportModalOpen(true)}
-                  className="px-3.5 py-2.5 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  className="px-3 py-2 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
                   title="View local transport options, fare rates, and routing advice"
                 >
                   <Navigation className="w-3.5 h-3.5 text-[#905831]" />
-                  <span>Getting Around</span>
+                  <span>Transit</span>
                 </button>
 
                 <button
                   onClick={() => setIsPackingModalOpen(true)}
-                  className="px-3.5 py-2.5 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  className="px-3 py-2 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
                   title="Climate and activity-tailored packing checklist"
                 >
                   <Luggage className="w-3.5 h-3.5 text-amber-600" />
@@ -305,8 +322,44 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                 </button>
 
                 <button
+                  onClick={() => setIsAudioGuideModalOpen(true)}
+                  className="px-3 py-2 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="Listen to AI Voice Audio Tour of landmarks"
+                >
+                  <Headphones className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Audio Guide</span>
+                </button>
+
+                <button
+                  onClick={() => setIsEmergencyModalOpen(true)}
+                  className="px-3 py-2 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="Emergency contacts, 24/7 hospitals, safety ratings & scam alerts"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Emergency SOS</span>
+                </button>
+
+                <button
+                  onClick={() => setIsCompilerModalOpen(true)}
+                  className="px-3 py-2 rounded-2xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="Import bookings, tickets, or WhatsApp notes into itinerary"
+                >
+                  <FileCode className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Import Notes</span>
+                </button>
+
+                <button
+                  onClick={() => setIsGroupModalOpen(true)}
+                  className="px-3 py-2 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  title="Collaborative planning, group voting & budget alignment"
+                >
+                  <Users className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Group Hub</span>
+                </button>
+
+                <button
                   onClick={onOpenShare}
-                  className="px-3.5 py-2.5 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                  className="px-3 py-2 rounded-2xl bg-white/80 hover:bg-white text-neutral-900 border border-black/10 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
                 >
                   <Share2 className="w-3.5 h-3.5 text-[#905831]" />
                   <span>Share</span>
@@ -315,7 +368,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
                 {/* Primary AI Concierge CTA */}
                 <button
                   onClick={onOpenConcierge}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#905831] via-[#c26127] to-[#df6b26] hover:from-[#7e4b28] hover:to-[#ce5f1e] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xl shadow-orange-900/20 transition-all hover:scale-[1.02] cursor-pointer"
+                  className="px-4 py-2 rounded-2xl bg-gradient-to-r from-[#905831] via-[#c26127] to-[#df6b26] hover:from-[#7e4b28] hover:to-[#ce5f1e] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xl shadow-orange-900/20 transition-all hover:scale-[1.02] cursor-pointer"
                 >
                   <Bot className="w-4 h-4 text-amber-200" />
                   <span>AI Concierge</span>
@@ -1140,6 +1193,62 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
         isOpen={isPackingModalOpen}
         onClose={() => setIsPackingModalOpen(false)}
         itinerary={itinerary}
+      />
+
+      {/* AI Scenario Simulator Modal */}
+      <ScenarioSimulatorModal
+        isOpen={isSimulatorModalOpen}
+        onClose={() => setIsSimulatorModalOpen(false)}
+        itinerary={itinerary}
+        tripId={trip.id}
+        onItineraryUpdated={(newIt) => {
+          if (onItineraryUpdated) onItineraryUpdated(newIt);
+          onRefreshTrip();
+        }}
+      />
+
+      {/* Emergency SOS & Local Intelligence Hub */}
+      <EmergencyHubModal
+        isOpen={isEmergencyModalOpen}
+        onClose={() => setIsEmergencyModalOpen(false)}
+        itinerary={itinerary}
+      />
+
+      {/* Voice AI Audio Tour Guide Modal */}
+      <AudioTourGuideModal
+        isOpen={isAudioGuideModalOpen}
+        onClose={() => setIsAudioGuideModalOpen(false)}
+        itinerary={itinerary}
+      />
+
+      {/* Import-to-Itinerary Compiler Modal */}
+      <ImportCompilerModal
+        isOpen={isCompilerModalOpen}
+        onClose={() => setIsCompilerModalOpen(false)}
+        itinerary={itinerary}
+        tripId={trip.id}
+        onItineraryUpdated={(newIt) => {
+          if (onItineraryUpdated) onItineraryUpdated(newIt);
+          onRefreshTrip();
+        }}
+      />
+
+      {/* Collaborative Group Planning & Decision Modal */}
+      <GroupPlanningModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        itinerary={itinerary}
+        onItineraryUpdated={(newIt) => {
+          if (onItineraryUpdated) onItineraryUpdated(newIt);
+          onRefreshTrip();
+        }}
+      />
+
+      {/* Offline Travel Companion & Local Sync */}
+      <OfflineCompanion
+        itinerary={itinerary}
+        tripId={trip.id}
+        onExpenseLogged={onRefreshTrip}
       />
     </div>
   );

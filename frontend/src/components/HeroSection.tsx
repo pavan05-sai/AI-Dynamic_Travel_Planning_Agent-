@@ -406,9 +406,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </label>
                 <input
                   type="number"
-                  step={1000}
-                  min={10000}
-                  max={200000}
+                  step={500}
+                  min={500}
+                  max={500000}
                   value={budget}
                   onChange={e => setBudget(Number(e.target.value))}
                   className="w-full mt-1 bg-transparent text-xs font-semibold text-neutral-900 focus:outline-none"

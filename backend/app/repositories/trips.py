@@ -24,6 +24,9 @@ class TripRepository:
         start_date: str,
         end_date: str,
         num_days: int,
+        budget: int = 30000,
+        adults: int = 2,
+        children: int = 0,
         mode: str = "live"
     ) -> Trip:
         trip = Trip(
@@ -33,6 +36,9 @@ class TripRepository:
             start_date=start_date,
             end_date=end_date,
             num_days=num_days,
+            budget=budget,
+            adults=adults,
+            children=children,
             mode=mode,
             current_version=0
         )

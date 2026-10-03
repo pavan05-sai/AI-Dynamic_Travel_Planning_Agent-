@@ -149,7 +149,7 @@ class BudgetEngine:
         )
 
     @classmethod
-    def min_feasible_cost(cls, num_days: int, travelers: Travelers, cheapest_hotel_rate: int = 1500) -> int:
+    def min_feasible_cost(cls, num_days: int, travelers: Travelers, cheapest_hotel_rate: int = 800) -> int:
         num_travelers = max(1, travelers.adults + travelers.children)
         nights = max(1, num_days - 1)
         rooms = cls.calculate_rooms(travelers.adults, travelers.children)

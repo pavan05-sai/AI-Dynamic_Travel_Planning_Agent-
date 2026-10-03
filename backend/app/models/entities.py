@@ -53,6 +53,9 @@ class Trip(Base):
     start_date = Column(String(10), nullable=False)  # YYYY-MM-DD
     end_date = Column(String(10), nullable=False)    # YYYY-MM-DD
     num_days = Column(Integer, nullable=False)
+    budget = Column(Integer, nullable=False, default=30000)  # User's total budget in INR
+    adults = Column(Integer, nullable=False, default=2)
+    children = Column(Integer, nullable=False, default=0)
     status = Column(String(50), default="active")   # draft, active, completed
     current_version = Column(Integer, default=0)
     mode = Column(String(50), default="live")       # live, demo, replay
